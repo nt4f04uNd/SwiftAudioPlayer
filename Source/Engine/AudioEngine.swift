@@ -44,7 +44,7 @@ class AudioEngine: AudioEngineProtocol {
     let key:Key
     
     var engine = AVAudioEngine()
-    let playerNode = AVAudioPlayerNode()
+    var playerNode = AVAudioPlayerNode()
     
     var timer: Timer?
     
