@@ -37,6 +37,7 @@ class SAPlayerPresenter {
     private var key: String?
     private var isPlaying: SAPlayingStatus = .buffering
     private var mediaInfo: SALockScreenInfo?
+    private var lockscreenVariant: SALockScreenVariant = .trackControls
     
     private var urlKeyMap: [Key: URL] = [:]
     
@@ -47,7 +48,7 @@ class SAPlayerPresenter {
     init(delegate: SAPlayerDelegate?) {
         self.delegate = delegate
         
-        delegate?.setLockScreenControls(presenter: self)
+        delegate?.setLockScreenControls(presenter: self, lockscreenVariant: lockscreenVariant)
         
         prepareNextEpisodeToPlay()
     }
@@ -138,6 +139,12 @@ class SAPlayerPresenter {
     func handleLockscreenInfo(info: SALockScreenInfo?) {
         self.mediaInfo = info
     }
+    
+    @available(iOS 10.0, *)
+    func handleLockscreenVariant(varaint: SALockScreenVariant) {
+        self.lockscreenVariant = varaint
+        delegate?.updateLockscreenVariant(presenter: self, lockscreenVariant: lockscreenVariant)
+    }
 }
 
 //MARK:- Used by outside world including:
@@ -181,6 +188,10 @@ extension SAPlayerPresenter {
     
     func handleScrubbingIntervalsChanged() {
         delegate?.updateLockscreenSkipIntervals()
+    }
+    
+    func handleTrackCallbacksChanged() {
+        delegate?.updateLockscreenTrackCallbacks(lockscreenVariant: lockscreenVariant)
     }
 }
 

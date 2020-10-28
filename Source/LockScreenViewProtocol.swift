@@ -27,11 +27,18 @@ import Foundation
 import MediaPlayer
 import UIKit
 
+public enum SALockScreenVariant {
+    case trackControls
+    case seekControls
+}
+
 // MARK: - Set up lockscreen audio controls
 // Documentation: https://developer.apple.com/documentation/avfoundation/media_assets_playback_and_editing/creating_a_basic_video_player_ios_and_tvos/controlling_background_audio
 protocol LockScreenViewProtocol {
     var skipForwardSeconds: Double { get set }
     var skipBackwardSeconds: Double { get set }
+    var onPreviousTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus { get set }
+    var onNextTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus { get set }
 }
 
 extension LockScreenViewProtocol {
@@ -81,7 +88,7 @@ extension LockScreenViewProtocol {
     }
     
     // https://stackoverflow.com/questions/36754934/update-mpremotecommandcenter-play-pause-button
-    func setLockScreenControls(presenter: SAPlayerPresenter) { //FIXME: this is weird
+    func setLockScreenControls(presenter: SAPlayerPresenter, lockscreenVariant: SALockScreenVariant) { //FIXME: this is weird
         // Get the shared MPRemoteCommandCenter
         let commandCenter = MPRemoteCommandCenter.shared()
         
@@ -91,6 +98,9 @@ extension LockScreenViewProtocol {
                 return .commandFailed
             }
             
+            if(presenter.needle != nil && presenter.duration != nil && (presenter.needle! >= presenter.duration!)) {
+                presenter.handleSeek(toNeedle: 0)
+            }
             if !presenter.getIsPlaying() {
                 presenter.handlePlay()
                 return .success
@@ -116,22 +126,6 @@ extension LockScreenViewProtocol {
         commandCenter.skipBackwardCommand.preferredIntervals = [skipBackwardSeconds] as [NSNumber]
         commandCenter.skipForwardCommand.preferredIntervals = [skipForwardSeconds] as [NSNumber]
         
-        commandCenter.skipBackwardCommand.addTarget { [weak presenter] event in
-            guard let presenter = presenter else {
-                return .commandFailed
-            }
-            presenter.handleSkipBackward()
-            return .success
-        }
-        
-        commandCenter.skipForwardCommand.addTarget { [weak presenter] event in
-            guard let presenter = presenter else {
-                return .commandFailed
-            }
-            presenter.handleSkipForward()
-            return .success
-        }
-        
         commandCenter.changePlaybackPositionCommand.addTarget { [weak presenter] event in
             guard let presenter = presenter else {
                 return .commandFailed
@@ -143,6 +137,8 @@ extension LockScreenViewProtocol {
             
             return .commandFailed
         }
+        
+        updateLockscreenVariant(presenter: presenter, lockscreenVariant: lockscreenVariant)
     }
     
     func updateLockscreenElapsedTime(needle: Needle) {
@@ -170,5 +166,43 @@ extension LockScreenViewProtocol {
     func updateLockscreenSkipIntervals() {
         MPRemoteCommandCenter.shared().skipBackwardCommand.preferredIntervals = [skipBackwardSeconds] as [NSNumber]
         MPRemoteCommandCenter.shared().skipForwardCommand.preferredIntervals = [skipForwardSeconds] as [NSNumber]
+    }
+    
+    func updateLockscreenTrackCallbacks(lockscreenVariant: SALockScreenVariant) {
+        if(lockscreenVariant == .trackControls) {
+            let commandCenter = MPRemoteCommandCenter.shared();
+            commandCenter.previousTrackCommand.removeTarget(nil)
+            commandCenter.nextTrackCommand.removeTarget(nil)
+            commandCenter.previousTrackCommand.addTarget(handler: onPreviousTrack)
+            commandCenter.nextTrackCommand.addTarget(handler: onNextTrack)
+        }
+    }
+    
+    func updateLockscreenVariant(presenter: SAPlayerPresenter, lockscreenVariant: SALockScreenVariant) {
+        let commandCenter = MPRemoteCommandCenter.shared();
+        commandCenter.previousTrackCommand.removeTarget(nil)
+        commandCenter.nextTrackCommand.removeTarget(nil)
+        commandCenter.skipBackwardCommand.removeTarget(nil)
+        commandCenter.skipForwardCommand.removeTarget(nil)
+        if(lockscreenVariant == .trackControls) {
+          commandCenter.previousTrackCommand.addTarget(handler: onPreviousTrack)
+          commandCenter.nextTrackCommand.addTarget(handler: onNextTrack)
+        } else {
+            commandCenter.skipBackwardCommand.addTarget { [weak presenter] event in
+                guard let presenter = presenter else {
+                    return .commandFailed
+                }
+                presenter.handleSkipBackward()
+                return .success
+            }
+            
+            commandCenter.skipForwardCommand.addTarget { [weak presenter] event in
+                guard let presenter = presenter else {
+                    return .commandFailed
+                }
+                presenter.handleSkipForward()
+                return .success
+            }
+        }
     }
 }

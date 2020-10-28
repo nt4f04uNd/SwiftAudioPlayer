@@ -25,6 +25,7 @@
 
 import Foundation
 import AVFoundation
+import MediaPlayer
 
 public class SAPlayer {
     public var DEBUG_MODE: Bool = false {
@@ -87,6 +88,17 @@ public class SAPlayer {
     public var skipBackwardSeconds: Double = 15 {
         didSet {
             presenter.handleScrubbingIntervalsChanged()
+        }
+    }
+    
+    public var onPreviousTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus = { _ in return .success } {
+        didSet {
+            presenter.handleTrackCallbacksChanged()
+        }
+    }
+    public var onNextTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus = { _ in return .success } {
+        didSet {
+            presenter.handleTrackCallbacksChanged()
         }
     }
     
@@ -164,6 +176,12 @@ public class SAPlayer {
     public var mediaInfo: SALockScreenInfo? = nil {
         didSet {
             presenter.handleLockscreenInfo(info: mediaInfo)
+        }
+    }
+    
+    public var lockScreenVariant: SALockScreenVariant = SALockScreenVariant.trackControls {
+        didSet {
+            presenter.handleLockscreenVariant(varaint: lockScreenVariant)
         }
     }
     
