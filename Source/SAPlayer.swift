@@ -464,6 +464,12 @@ extension SAPlayer: SAPlayerDelegate {
         var seekToNeedle = needle < 0 ? 0 : needle
         seekToNeedle = needle > Needle(duration ?? 0) ? Needle(duration ?? 0) : needle
         player?.seek(toNeedle: seekToNeedle)
+        guard let playing = player?.playing else {
+            return;
+        }
+        if(playing) {
+            playEngine()
+        }
     }
 }
 

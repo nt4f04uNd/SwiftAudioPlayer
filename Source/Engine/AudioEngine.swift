@@ -72,6 +72,8 @@ class AudioEngine: AudioEngineProtocol {
         }
     }
     
+    var playing : Bool = false
+    
     var playingStatus: SAPlayingStatus? = nil {
         didSet {
             guard playingStatus != oldValue, let status = playingStatus else {
@@ -167,6 +169,8 @@ class AudioEngine: AudioEngineProtocol {
     }
     
     func play() {
+        playing = true
+        
         // https://stackoverflow.com/questions/36754934/update-mpremotecommandcenter-play-pause-button
         if !engine.isRunning {
             do {
@@ -185,6 +189,8 @@ class AudioEngine: AudioEngineProtocol {
     }
     
     func pause() {
+        playing = false
+        
         // https://stackoverflow.com/questions/36754934/update-mpremotecommandcenter-play-pause-button
         playerNode.pause()
         engine.pause()

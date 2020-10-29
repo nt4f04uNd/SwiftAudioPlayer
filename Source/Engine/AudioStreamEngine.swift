@@ -73,7 +73,7 @@ class AudioStreamEngine: AudioEngine {
         didSet {
             Log.debug("number of buffers scheduled in total: \(numberOfBuffersScheduledInTotal)")
             if numberOfBuffersScheduledInTotal == 0 {
-                pause()
+                // pause()
                 //                delegate?.didError()
                 // TODO: we should not have an error here. We should instead have the throttler
                 // propegate when it doesn't enough buffers while they were playing
@@ -283,36 +283,7 @@ class AudioStreamEngine: AudioEngine {
         converter.seek(needle)
         currentTimeOffset = TimeInterval(needle)
         
-        self.engine.detach(self.playerNode)
-        self.playerNode = AVAudioPlayerNode()
-        self.engine.attach(self.playerNode)
-        for node in SAPlayer.shared.audioModifiers {
-            self.engine.detach(node)
-            self.engine.attach(node)
-        }
-        if SAPlayer.shared.audioModifiers.count > 0 {
-            var i = 0
-            
-            let node = SAPlayer.shared.audioModifiers[i]
-            engine.connect(playerNode, to: node, format: AudioEngine.defaultEngineAudioFormat)
-            
-            i += 1
-            
-            while i < SAPlayer.shared.audioModifiers.count {
-                let lastNode = SAPlayer.shared.audioModifiers[i - 1]
-                let currNode = SAPlayer.shared.audioModifiers[i]
-                
-                engine.connect(lastNode, to: currNode, format: AudioEngine.defaultEngineAudioFormat)
-                i += 1
-            }
-            
-            let finalNode = SAPlayer.shared.audioModifiers[SAPlayer.shared.audioModifiers.count - 1]
-            
-            engine.connect(finalNode, to: engine.mainMixerNode, format: AudioEngine.defaultEngineAudioFormat)
-        } else {
-            engine.connect(playerNode, to: engine.mainMixerNode, format: AudioEngine.defaultEngineAudioFormat)
-        }
-        //self.playerNode.stop()
+        self.playerNode.stop()
         
         shouldPollForNextBuffer = true
         
