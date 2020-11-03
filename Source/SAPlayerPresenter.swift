@@ -35,7 +35,6 @@ class SAPlayerPresenter {
     var duration: Duration?
     
     private var key: String?
-    private var isPlaying: SAPlayingStatus = .buffering
     private var mediaInfo: SALockScreenInfo?
     private var lockscreenVariant: SALockScreenVariant = .trackControls
     
@@ -119,8 +118,6 @@ class SAPlayerPresenter {
                 Log.debug("misfire expected key: \(self.key ?? "none") payload key: \(key)")
                 return
             }
-            
-            self.isPlaying = isPlaying
         })
     }
     
@@ -150,6 +147,7 @@ class SAPlayerPresenter {
 //MARK:- Used by outside world including:
 // SPP, lock screen, directors
 extension SAPlayerPresenter {
+    
     func handlePause() {
         delegate?.pauseEngine()
         self.delegate?.updateLockscreenPaused()
@@ -158,14 +156,6 @@ extension SAPlayerPresenter {
     func handlePlay() {
         delegate?.playEngine()
         self.delegate?.updateLockscreenPlaying()
-    }
-    
-    func handleTogglePlayingAndPausing() {
-        if isPlaying == .playing {
-            handlePause()
-        } else if isPlaying == .paused {
-            handlePlay()
-        }
     }
     
     func handleSkipForward() {
@@ -192,13 +182,6 @@ extension SAPlayerPresenter {
     
     func handleTrackCallbacksChanged() {
         delegate?.updateLockscreenTrackCallbacks(lockscreenVariant: lockscreenVariant)
-    }
-}
-
-//MARK:- For lock screen
-extension SAPlayerPresenter {
-    func getIsPlaying() -> Bool {
-        return isPlaying == .playing
     }
 }
 

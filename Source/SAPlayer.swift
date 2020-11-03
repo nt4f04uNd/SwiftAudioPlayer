@@ -91,6 +91,7 @@ public class SAPlayer {
         }
     }
     
+    public var onPlayPause: () -> Void = {}
     public var onPreviousTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus = { _ in return .success } {
         didSet {
             presenter.handleTrackCallbacksChanged()
@@ -245,14 +246,6 @@ public class SAPlayer {
 
 //MARK: - External Player Controls
 extension SAPlayer {
-    /**
-     Toggles between the play and pause state of the player. If nothing is playable (aka still in buffering state or no audio is initialized) no action will be taken. Please call `startSavedAudio` or `startRemoteAudio` to set up the player with audio before this.
-     
-     - Note: If you are streaming, wait till the status from `SAPlayer.Updates.PlayingStatus` is not `.buffering`.
-     */
-    public func togglePlayAndPause() {
-        presenter.handleTogglePlayingAndPausing()
-    }
     
     /**
      Attempts to play the player. If nothing is playable (aka still in buffering state or no audio is initialized) no action will be taken. Please call `startSavedAudio` or `startRemoteAudio` to set up the player with audio before this.
@@ -417,6 +410,7 @@ extension SAPlayer {
 
 //MARK: - Internal implementation of delegate
 extension SAPlayer: SAPlayerDelegate {
+    
     func startAudioDownloaded(withSavedUrl url: AudioURL) {
         player?.pause()
         player?.invalidate()

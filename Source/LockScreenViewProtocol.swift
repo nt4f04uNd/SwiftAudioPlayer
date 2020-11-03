@@ -37,6 +37,7 @@ public enum SALockScreenVariant {
 protocol LockScreenViewProtocol {
     var skipForwardSeconds: Double { get set }
     var skipBackwardSeconds: Double { get set }
+    var onPlayPause: () -> Void { get set }
     var onPreviousTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus { get set }
     var onNextTrack: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus { get set }
 }
@@ -93,34 +94,15 @@ extension LockScreenViewProtocol {
         let commandCenter = MPRemoteCommandCenter.shared()
         
         // Add handler for Play Command
-        commandCenter.playCommand.addTarget { [weak presenter] event in
-            guard let presenter = presenter else {
-                return .commandFailed
-            }
-            
-            if(presenter.needle != nil && presenter.duration != nil && (presenter.needle! >= presenter.duration!)) {
-                presenter.handleSeek(toNeedle: 0)
-            }
-            if !presenter.getIsPlaying() {
-                presenter.handlePlay()
-                return .success
-            }
-            
-            return .commandFailed
+        commandCenter.playCommand.addTarget { _ in
+            self.onPlayPause()
+            return .success
         }
         
         // Add handler for Pause Command
-        commandCenter.pauseCommand.addTarget { [weak presenter] event in
-            guard let presenter = presenter else {
-                return .commandFailed
-            }
-            
-            if presenter.getIsPlaying() {
-                presenter.handlePause()
-                return .success
-            }
-            
-            return .commandFailed
+        commandCenter.pauseCommand.addTarget { _ in
+            self.onPlayPause()
+            return .success
         }
         
         commandCenter.skipBackwardCommand.preferredIntervals = [skipBackwardSeconds] as [NSNumber]
