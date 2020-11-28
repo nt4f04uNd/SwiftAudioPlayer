@@ -73,7 +73,9 @@ class AudioStreamEngine: AudioEngine {
         didSet {
             Log.debug("number of buffers scheduled in total: \(numberOfBuffersScheduledInTotal)")
             if numberOfBuffersScheduledInTotal == 0 {
-                // pause()
+                queue.async { [weak self] in
+                    self?.pause()
+                }
                 //                delegate?.didError()
                 // TODO: we should not have an error here. We should instead have the throttler
                 // propegate when it doesn't enough buffers while they were playing
